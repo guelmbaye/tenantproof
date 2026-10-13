@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-12",
+  "scope": "LOCAL_ONLY",
+  "source": "actual local pytest and source-mutation replay",
+  "secure_test_suite": {
+    "returncode": 0,
+    "output": "........                                                                 [100%]\n8 passed in 0.15s"
+  },
+  "m01_replay": {
+    "returncode": 0,
+    "expected_contrast": "4/4 conventional tests passed, 2/4 isolation tests failed against M01",
+    "validated": true
+  },
+  "gitlab_duo_executed": false,
+  "autonomous_patch_validated": false,
+  "cloud_run_deployed": false
+}

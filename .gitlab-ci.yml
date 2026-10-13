@@ -1,0 +1,90 @@
+stages:
+  - validate
+  - test
+  - security
+  - package
+  - deploy
+  - verify
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+.python_job:
+  image: python:3.12-slim
+  before_script:
+    - python -m pip install -r requirements.txt
+
+contract:
+  extends: .python_job
+  stage: validate
+  script:
+    - python scripts/check_contract.py
+    - python -m compileall -q app scripts tests
+
+unit-tests:
+  extends: .python_job
+  stage: test
+  script:
+    - mkdir -p reports
+    - python -m pytest -q tests/baseline --junitxml=reports/unit.xml
+  artifacts:
+    when: always
+    reports:
+      junit: reports/unit.xml
+
+isolation-gate:
+  extends: .python_job
+  stage: test
+  script:
+    - mkdir -p reports
+    - python -m pytest -q tests/isolation --junitxml=reports/isolation.xml
+  artifacts:
+    when: always
+    reports:
+      junit: reports/isolation.xml
+
+security-check:
+  extends: .python_job
+  stage: security
+  script:
+    - python -m pip check
+    - python scripts/check_release_policy.py
+
+# Registry publishing requires a Docker-compatible runner. Only the default
+# branch is eligible. This is not an autonomous merge mechanism.
+package:
+  stage: package
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_REGISTRY_IMAGE'
+  script:
+    - printf "%s" "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+
+# Cloud Run is an explicit opt-in extension, not a completed capability.
+# It requires configured GCP OIDC/WIF, Artifact Registry and Cloud SQL.
+# Do not enable it until the deployment verification runbook is satisfied.
+cloudrun-deploy:
+  stage: deploy
+  image: google/cloud-sdk:slim
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $DEPLOY_ENABLED == "true"'
+  id_tokens:
+    GCP_OIDC_TOKEN:
+      aud: "$GCP_WIF_AUDIENCE"
+  script:
+    - bash deploy/cloudrun.sh
+
+runtime-check:
+  stage: verify
+  extends: .python_job
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $DEPLOY_ENABLED == "true"'
+  script:
+    - python scripts/runtime_probe.py

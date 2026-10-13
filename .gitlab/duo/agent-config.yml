@@ -1,0 +1,7 @@
+# Read by GitLab Duo from the default branch.
+# Keep setup free of unsafe executable content: scripts run with workflow tokens.
+setup_script:
+  - "python3 --version"
+  - "python3 -m pip install -r requirements.txt"
+network_policy:
+  include_recommended_allowed: true

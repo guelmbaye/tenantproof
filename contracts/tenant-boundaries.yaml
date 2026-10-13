@@ -1,0 +1,11 @@
+version: 1
+resources:
+  invoice:
+    path: /api/v1/invoices/{invoice_id}
+    method: GET
+    owner_field: tenant_id
+    principal_source: verified_jwt_subject
+    rule: invoice.tenant_id == authenticated_user.tenant_id
+    allowed_status: 200
+    denied_status: 403
+    protected_fields: [id, tenant_id, reference, amount_cents, currency]
