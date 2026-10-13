@@ -1,7 +1,10 @@
-# Read by GitLab Duo from the default branch.
-# Keep setup free of unsafe executable content: scripts run with workflow tokens.
+# GitLab reads this from the DEFAULT branch. Protect it against edits from
+# untrusted MRs. This setup script runs before the Duo sandbox is applied.
+# Never execute editable repository scripts or `pip install -r requirements.txt`
+# here: a source MR could alter its inputs in a privileged phase.
+# Versioned, constant dependencies used by the demo test runner ONLY.
 setup_script:
   - "python3 --version"
-  - "python3 -m pip install -r requirements.txt"
+  - "python3 -m pip install --disable-pip-version-check 'fastapi==0.128.2' 'SQLAlchemy==2.0.50' 'PyJWT==2.13.0' 'httpx==0.28.1' 'pytest==9.0.2' 'PyYAML==6.0.3'"
 network_policy:
   include_recommended_allowed: true

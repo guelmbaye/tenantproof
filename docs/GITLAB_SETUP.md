@@ -13,6 +13,9 @@
 9. Validate automatic merge support; the included flow only prepares patch and evidence — **there is no automated merge implementation in this bootstrap**.
 10. Enable deployment only after WIF, Cloud SQL and synthetic token generation are verified. Preserve commit SHA, image digest and HTTP probes.
 
+Before the main remediation flow, use `docs/GATE0_LIVE_RUNBOOK.md` and the
+read/comment smoke flow. A successful comment is NOT a proof of source push.
+
 ## GO / NO-GO
 
 - **GO platform**: completed Duo session with actual tool calls + CI jobs run.

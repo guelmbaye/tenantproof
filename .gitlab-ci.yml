@@ -18,6 +18,7 @@ contract:
   extends: .python_job
   stage: validate
   script:
+    - python scripts/validate_gitlab_config.py
     - python scripts/check_contract.py
     - python -m compileall -q app scripts tests
 

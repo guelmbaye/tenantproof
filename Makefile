@@ -16,3 +16,9 @@ up:
 	docker compose up -d --build
 down:
 	docker compose down --volumes
+.PHONY: platform-check gate0-local
+gate0-local:
+	$(PYTHON) scripts/validate_gitlab_config.py
+	$(PYTHON) -m pytest -q tests/platform
+platform-check: gate0-local
+	$(PYTHON) scripts/check_release_policy.py

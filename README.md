@@ -97,3 +97,41 @@ git push -u origin demo/m01-invoice-leak
 ```
 
 Create a merge request targeting the protected default branch. The CI isolation gate **must be red** before any patch is applied. Assign the GitLab Duo flow service account as reviewer to start remediation. The automation must never merge an unverified branch. This helper refuses to run on the default branch and does not push anything by itself.
+
+## Execution Pack 02 — Live GitLab Gate 0 (October 13, 2026)
+
+First run the static configuration and CI safety checks:
+
+```sh
+make gate0-local
+```
+
+**Safe smoke before autonomous code edits:** In `AI > Flows > New flow`, register
+`.gitlab/duo/flows/gate0-smoke.yaml` as **TENANTPROOF Gate 0 Smoke** and enable
+ONLY **Assign reviewer**. Assign its service account as reviewer on a harmless
+human-created MR. Inspect `AI > Sessions`; success means the real agent read
+this MR and posted exactly one note containing
+`TENANTPROOF_GATE0_MR_READ_WRITE_OK`. This is **not** evidence of a code push.
+Do not create a second trigger for the same flow during this smoke test.
+
+Optionally inspect the remote project and MR without changing anything:
+
+```sh
+export GITLAB_TOKEN="<your short-lived GitLab read_api token>"
+python scripts/gitlab_gate0.py --project "your-group/tenantproof" --mr 1
+unset GITLAB_TOKEN
+```
+
+The script writes a sanitized local report under `evidence/live/` which is
+ignored by git. Never commit tokens, tokens in URLs, or private MR content.
+Normal GitLab project and pipeline REST responses do **not** prove Duo executed.
+Evidence of Duo execution MUST be inspected under `AI > Sessions`.
+
+After smoke succeeds, register the main flow from
+`.gitlab/duo/flows/tenantproof.yaml` and select **Assign reviewer** only.
+Open the disposable M01 MR and assign that flow's account as reviewer.
+The target `isolation-gate` should be red before the agent patches code. This
+pack has NOT implemented Hands-off automatic merge, Cloud Run provisioning,
+or autonomous release, and it makes no such claim.
+
+See `docs/GATE0_LIVE_RUNBOOK.md` for UI steps and the evidence gate.

@@ -1,0 +1,34 @@
+{
+  "name": "TENANTPROOF Execution Pack 02 local validation",
+  "run_at_utc": "2026-10-13T14:12:16.068264+00:00",
+  "results": {
+    "static_config": {
+      "status": "PASS_LOCAL_ONLY",
+      "command": "python scripts/validate_gitlab_config.py"
+    },
+    "test_suite": {
+      "status": "PASS",
+      "command": "python -m pytest -q tests",
+      "passed": 12
+    },
+    "M01_baseline": {
+      "passed": 4,
+      "returncode": 0
+    },
+    "M01_isolation": {
+      "passed": 2,
+      "failed": 2,
+      "returncode": 1,
+      "expected_red": true
+    },
+    "temporary_mutation": true
+  },
+  "unverified": {
+    "gitlab_live_trigger": true,
+    "gitlab_duo_session": true,
+    "gitlab_duo_generated_patch": true,
+    "gitlab_autonomous_merge": true,
+    "cloud_run_deployment": true
+  },
+  "notes": "Local tests do not validate the remote flow schema, trigger, runner, API tools, protected-branch policy, or GitLab/Cloud permissions."
+}
